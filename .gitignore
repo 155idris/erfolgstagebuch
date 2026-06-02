@@ -1,0 +1,7 @@
+eintraege.json
+__pycache__/
+*.pyc
+.DS_Store
+generate_mockup.py
+mockup_dashboard.png
+design_philosophy.md

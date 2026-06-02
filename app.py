@@ -16,8 +16,19 @@ import streamlit as st
 from datetime import datetime
 import html
 import json
+import os
+
+# Streamlit Secrets → Umgebungsvariablen (lokal via secrets.toml, Cloud via Web-UI)
+# PCEP: try/except, os.environ, dict-ähnlicher Zugriff auf st.secrets
+try:
+    for key in ["NOTION_TOKEN", "NOTION_DATABASE_ID"]:
+        if key in st.secrets and not os.getenv(key):
+            os.environ[key] = st.secrets[key]
+except Exception:
+    pass  # Kein secrets.toml vorhanden → .env oder Umgebungsvariablen gelten
+
 import daten
-import notion_sync  # PCEP: eigenes Modul importieren
+import notion_sync
 
 # ─── Seitenkonfiguration ──────────────────────────────────────────────────────
 st.set_page_config(

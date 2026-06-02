@@ -16,6 +16,7 @@
 import json
 import os
 from datetime import datetime, timedelta
+import notion_sync  # PCEP: eigenes Modul importieren
 
 # Pfad zur JSON-Datei (im gleichen Ordner wie dieses Skript)
 DATEI = os.path.join(os.path.dirname(__file__), "eintraege.json")
@@ -157,8 +158,13 @@ def neuer_rueckblick_eintrag(text, kategorien, intensitaet):
 
     # PCEP: Funktion aufrufen, Liste erweitern (append), File I/O
     eintraege = lade_eintraege()
+    eintrag["synced"] = False
     eintraege.append(eintrag)
     _schreibe_eintraege(eintraege)
+
+    if notion_sync.sync_eintrag(eintrag):
+        eintraege[-1]["synced"] = True
+        _schreibe_eintraege(eintraege)
 
 
 def analysiere_akut_text(text):
@@ -230,8 +236,13 @@ def neuer_akut_eintrag(text, erkannte_signale, spiegel, schritt):
     }
 
     eintraege = lade_eintraege()
+    eintrag["synced"] = False
     eintraege.append(eintrag)
     _schreibe_eintraege(eintraege)
+
+    if notion_sync.sync_eintrag(eintrag):
+        eintraege[-1]["synced"] = True
+        _schreibe_eintraege(eintraege)
 
 
 # ─── Auswertungs-Funktionen ───────────────────────────────────────────────────

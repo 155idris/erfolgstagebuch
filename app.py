@@ -14,9 +14,10 @@
 
 import streamlit as st
 from datetime import datetime
-import html  # PCEP: Standardbibliothek — Fix 5: HTML-Escaping
+import html
 import json
-import daten  # PCEP: eigenes Modul importieren
+import daten
+import notion_sync  # PCEP: eigenes Modul importieren
 
 # ─── Seitenkonfiguration ──────────────────────────────────────────────────────
 st.set_page_config(
@@ -120,6 +121,22 @@ def kachel(titel, wert, farbe="#f59e0b", rahmen="#f59e0b", hintergrund="#1a1200"
 # PCEP: f-String für dynamisches Datum
 heute_str = datetime.now().strftime("%d.%m.%Y")
 
+# Ausstehende Einträge beim Start synchronisieren
+if "sync_done" not in st.session_state:
+    alle = daten.lade_eintraege()
+    aktualisiert, gesynct = notion_sync.sync_ausstehende(alle)
+    if gesynct > 0:
+        daten._schreibe_eintraege(aktualisiert)
+    st.session_state.sync_done = True
+
+# Notion-Status für Anzeige
+notion_ok = notion_sync.notion_verfuegbar()
+notion_badge = (
+    '<span style="color:#4ab86c;font-size:0.75rem;">● Notion verbunden</span>'
+    if notion_ok else
+    '<span style="color:#6b5a40;font-size:0.75rem;">○ Nur lokal</span>'
+)
+
 st.markdown(
     '<h1 style="color:#f59e0b;font-family:Georgia,serif;font-weight:300;margin-bottom:0;">'
     'Erfolgstagebuch</h1>',
@@ -127,7 +144,7 @@ st.markdown(
 )
 st.markdown(
     f'<p style="color:#4a4030;font-size:0.85rem;margin-top:0;">'
-    f'Dein Weg zur Befreiung · {heute_str}</p>',
+    f'Dein Weg zur Befreiung · {heute_str} &nbsp;·&nbsp; {notion_badge}</p>',
     unsafe_allow_html=True
 )
 st.markdown("---")

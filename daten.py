@@ -465,3 +465,25 @@ def akut_count(eintraege):
         if e.get("modus") == "akut":
             anzahl += 1
     return anzahl
+
+
+def aktualisiere_eintrag_text(index, neuer_text):
+    """Aktualisiert den Text eines bestehenden Eintrags und synct nach Notion.
+
+    PCEP-Konzepte: Funktionen, Conditionals, Listen, Dictionaries
+    Parameter: index      — Position des Eintrags in der Liste (Integer)
+               neuer_text — aktualisierter Text (String)
+    Rückgabe:  True wenn erfolgreich, False bei ungültigem Index
+    """
+    eintraege = lade_eintraege()
+    # PCEP: Conditional — Index muss gültig sein
+    if 0 <= index < len(eintraege):
+        eintraege[index]["text"] = neuer_text
+        eintraege[index]["synced"] = False  # Neu-Sync nötig
+        _schreibe_eintraege(eintraege)
+        # Notion: neue Page mit aktualisiertem Text anlegen
+        if notion_sync.sync_eintrag(eintraege[index]):
+            eintraege[index]["synced"] = True
+            _schreibe_eintraege(eintraege)
+        return True
+    return False

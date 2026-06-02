@@ -173,11 +173,16 @@ if "akut_letztes_ergebnis" not in st.session_state:
     st.session_state.akut_letztes_ergebnis = None
 if "rueckblick_letztes_ergebnis" not in st.session_state:
     st.session_state.rueckblick_letztes_ergebnis = None
+if "verlauf_zeige_n" not in st.session_state:
+    st.session_state.verlauf_zeige_n = 10
+if "verlauf_bearbeiten_idx" not in st.session_state:
+    st.session_state.verlauf_bearbeiten_idx = None
 
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "⚡  Ich merke gerade etwas",
     "📖  Erfolg dokumentieren",
-    "📊  Mein Fortschritt"
+    "📊  Mein Fortschritt",
+    "🗂️  Verlauf"
 ])
 
 
@@ -428,85 +433,6 @@ with tab3:
 
         st.markdown("")
 
-    # ── Kategorien-Chart ──────────────────────────────────────────────────────
-    stats = daten.kategorie_stats(alle_eintraege)
-
-    if stats:
-        st.markdown("#### Kategorien gesamt")
-
-        # PCEP: Dictionary-Iteration, String-Slicing für kurze Labels
-        chart_daten = {}
-        for kat, anzahl in stats.items():
-            # Emoji + langen Text kürzen für lesbare Chart-Achse
-            kurz = kat[2:].strip() if len(kat) > 2 else kat
-            kurz = kurz[:28] + "…" if len(kurz) > 28 else kurz
-            chart_daten[kurz] = anzahl
-
-        st.bar_chart(chart_daten)
-
-    st.markdown("---")
-
-    # ── Letzte Einträge ───────────────────────────────────────────────────────
-    st.markdown("#### Letzte Einträge")
-
-    if not alle_eintraege:
-        st.markdown(
-            '<p style="color:#4a4030;">Noch keine Einträge. Starte mit deinem ersten Moment.</p>',
-            unsafe_allow_html=True
-        )
-    else:
-        # PCEP: reversed() + Slicing — neueste 10 Einträge, neueste zuerst
-        for e in reversed(alle_eintraege[-10:]):
-
-            # PCEP: Conditional für Modus-Badge
-            if e.get("modus") == "akut":
-                badge = "⚡ Akut-Moment"
-            else:
-                badge = "📖 Rückblick"
-
-            # PCEP: f-String + String-Slicing für Vorschau-Text
-            vorschau = e["text"][:55] + "..." if len(e["text"]) > 55 else e["text"]
-            titel = f"{e['datum']}  {e.get('uhrzeit', '')} · {badge} · {vorschau}"
-
-            with st.expander(titel):
-                spalte_text, spalte_meta = st.columns([3, 1])
-
-                with spalte_text:
-                    # Fix 5: st.write statt markdown mit f-string — kein ungeplantes Markdown
-                    st.write(f"**{e['text']}**")
-
-                    # Fix 1: neue Akut-Felder anzeigen (erkannte_signale, spiegel, schritt)
-                    if e.get("modus") == "akut":
-                        signale = e.get("erkannte_signale", [])
-                        if signale:
-                            # PCEP: String-Join — Liste zu lesbarem Text
-                            st.markdown(f"⚡ **Könnte klingen nach:** {', '.join(signale)}")
-                        spiegel_text = e.get("spiegel", "")
-                        if spiegel_text:
-                            st.markdown(f"🪞 **Spiegel:** {spiegel_text}")
-                        schritt_text = e.get("schritt", "")
-                        if schritt_text:
-                            st.markdown(f"✦ **Möglicher Schritt:** {schritt_text}")
-
-                with spalte_meta:
-                    # PCEP: for-Schleife über eine Liste von Strings
-                    for kat in e.get("kategorien", []):
-                        ist_gold = kat in daten.MUSTER_KATEGORIEN
-                        farbe = "#f59e0b" if ist_gold else "#8a8070"
-                        st.markdown(
-                            f'<span style="color:{farbe};font-size:0.78rem;">{kat}</span><br>',
-                            unsafe_allow_html=True
-                        )
-
-                    # PCEP: Conditional + String-Multiplikation für Intensitäts-Punkte
-                    intensitaet = e.get("intensitaet", 0)
-                    if intensitaet > 0:
-                        punkte = "●" * intensitaet + "○" * (5 - intensitaet)
-                        st.markdown(
-                            f'<span style="color:#f59e0b;font-size:0.9rem;">{punkte}</span>',
-                            unsafe_allow_html=True
-                        )
-
     # ── Daten-Export + Import ─────────────────────────────────────────────────
     st.markdown("---")
     st.markdown("#### Daten sichern")
@@ -547,3 +473,101 @@ with tab3:
                         st.error("Ungültiges Format — erwartet eine JSON-Liste.")
                 except json.JSONDecodeError:
                     st.error("Datei konnte nicht gelesen werden.")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 4 — VERLAUF
+# Letzte Einträge ansehen und bearbeiten
+# ══════════════════════════════════════════════════════════════════════════════
+with tab4:
+    st.markdown("### Verlauf")
+
+    alle_eintraege = daten.lade_eintraege()
+    gesamt = len(alle_eintraege)
+
+    if not alle_eintraege:
+        st.markdown(
+            '<p style="color:#4a4030;">Noch keine Einträge. Starte mit deinem ersten Moment.</p>',
+            unsafe_allow_html=True
+        )
+    else:
+        # PCEP: Slicing — nur die letzten N Einträge anzeigen
+        n = st.session_state.verlauf_zeige_n
+        eintraege_anzeigen = alle_eintraege[-n:]
+
+        # PCEP: enumerate + reversed — neueste zuerst, mit echtem Index
+        for i, e in enumerate(reversed(eintraege_anzeigen)):
+            actual_idx = gesamt - 1 - i  # echter Index in alle_eintraege
+
+            # PCEP: Conditional für Modus-Badge
+            badge = "⚡ Akut" if e.get("modus") == "akut" else "📖 Rückblick"
+            vorschau = e["text"][:55] + "..." if len(e["text"]) > 55 else e["text"]
+            titel = f"{e['datum']}  {e.get('uhrzeit', '')} · {badge} · {vorschau}"
+
+            with st.expander(titel):
+
+                # ── Bearbeitungsmodus ─────────────────────────────────────────
+                if st.session_state.verlauf_bearbeiten_idx == actual_idx:
+                    neuer_text = st.text_area(
+                        "Text bearbeiten",
+                        value=e["text"],
+                        height=150,
+                        key=f"edit_text_{actual_idx}"
+                    )
+                    col_save, col_cancel = st.columns([1, 1])
+                    with col_save:
+                        if st.button("💾 Speichern", key=f"save_{actual_idx}"):
+                            if neuer_text.strip():
+                                daten.aktualisiere_eintrag_text(actual_idx, neuer_text)
+                                st.session_state.verlauf_bearbeiten_idx = None
+                                st.rerun()
+                    with col_cancel:
+                        if st.button("Abbrechen", key=f"cancel_{actual_idx}"):
+                            st.session_state.verlauf_bearbeiten_idx = None
+                            st.rerun()
+
+                # ── Lesemodus ─────────────────────────────────────────────────
+                else:
+                    spalte_text, spalte_meta = st.columns([3, 1])
+
+                    with spalte_text:
+                        st.write(e["text"])
+
+                        if e.get("modus") == "akut":
+                            signale = e.get("erkannte_signale", [])
+                            if signale:
+                                st.markdown(f"⚡ **Könnte klingen nach:** {', '.join(signale)}")
+                            spiegel_text = e.get("spiegel", "")
+                            if spiegel_text:
+                                st.markdown(f"🪞 **Spiegel:** {spiegel_text}")
+                            schritt_text = e.get("schritt", "")
+                            if schritt_text:
+                                st.markdown(f"✦ **Möglicher Schritt:** {schritt_text}")
+
+                        # PCEP: Bearbeiten-Button
+                        if st.button("✏️ Bearbeiten", key=f"edit_btn_{actual_idx}"):
+                            st.session_state.verlauf_bearbeiten_idx = actual_idx
+                            st.rerun()
+
+                    with spalte_meta:
+                        for kat in e.get("kategorien", []):
+                            ist_gold = kat in daten.MUSTER_KATEGORIEN
+                            farbe = "#f59e0b" if ist_gold else "#8a8070"
+                            st.markdown(
+                                f'<span style="color:{farbe};font-size:0.78rem;">{kat}</span><br>',
+                                unsafe_allow_html=True
+                            )
+                        intensitaet = e.get("intensitaet", 0)
+                        if intensitaet > 0:
+                            punkte = "●" * intensitaet + "○" * (5 - intensitaet)
+                            st.markdown(
+                                f'<span style="color:#f59e0b;font-size:0.9rem;">{punkte}</span>',
+                                unsafe_allow_html=True
+                            )
+
+        # ── Weitere laden ─────────────────────────────────────────────────────
+        if gesamt > n:
+            verbleibend = gesamt - n
+            if st.button(f"Weitere 10 anzeigen · noch {verbleibend} Einträge"):
+                st.session_state.verlauf_zeige_n += 10
+                st.rerun()

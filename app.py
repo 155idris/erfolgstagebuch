@@ -88,6 +88,15 @@ st.markdown("""
 
     /* Slider */
     .stSlider [data-baseweb="slider"] [role="slider"] { background: #f59e0b; }
+
+    /* Mobile: größere Touch-Targets, Button immer sichtbar */
+    @media (max-width: 768px) {
+        .block-container { padding: 1rem 1rem; }
+        .stTextArea textarea { font-size: 16px !important; min-height: 120px; }
+        .stTextInput input { font-size: 16px !important; }
+        .stButton > button { width: 100%; font-size: 1rem; padding: 0.8rem; }
+        .stMultiSelect { font-size: 15px; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -125,6 +134,10 @@ st.markdown("---")
 
 # ─── Tabs ─────────────────────────────────────────────────────────────────────
 # PCEP: Mehrere Variablen in einer Zuweisung (Tuple-Unpacking)
+# Session State initialisieren — Text bleibt erhalten beim Tab-Wechsel
+if "akut_text_gespeichert" not in st.session_state:
+    st.session_state.akut_text_gespeichert = ""
+
 tab1, tab2, tab3 = st.tabs([
     "⚡  Ich merke gerade etwas",
     "📖  Erfolg dokumentieren",
@@ -144,14 +157,15 @@ with tab1:
         unsafe_allow_html=True
     )
 
-    # PCEP: String-Variable aus großem Texteingabefeld
+    # PCEP: String-Variable — value aus session_state damit Tab-Wechsel Text erhält
     akut_text = st.text_area(
         label="Freies Schreiben",
         placeholder="Was passiert gerade? Was fühlst du? Was läuft ab?\n\n"
                     "Einfach schreiben — die App hört zu.",
         height=180,
         label_visibility="collapsed",
-        key="akut_freitext"
+        key="akut_freitext",
+        value=st.session_state.akut_text_gespeichert
     )
 
     st.markdown("")
@@ -162,8 +176,8 @@ with tab1:
             # PCEP: Tuple-Unpacking — 3 Rückgabewerte der Analysefunktion
             erkannte_signale, spiegel, schritt = daten.analysiere_akut_text(akut_text)
 
-            # Fix 1: schritt jetzt auch übergeben
             daten.neuer_akut_eintrag(akut_text, erkannte_signale, spiegel, schritt)
+            st.session_state.akut_text_gespeichert = ""  # Text nach Speichern leeren
 
             # ── Spiegel anzeigen ─────────────────────────────────────────
             st.markdown("---")
@@ -335,8 +349,9 @@ with tab3:
         # PCEP: Dictionary-Iteration, String-Slicing für kurze Labels
         chart_daten = {}
         for kat, anzahl in stats.items():
-            # Emoji entfernen (erste 2 Zeichen) für bessere Darstellung
+            # Emoji + langen Text kürzen für lesbare Chart-Achse
             kurz = kat[2:].strip() if len(kat) > 2 else kat
+            kurz = kurz[:28] + "…" if len(kurz) > 28 else kurz
             chart_daten[kurz] = anzahl
 
         st.bar_chart(chart_daten)

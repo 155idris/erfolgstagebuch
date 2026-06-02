@@ -44,9 +44,9 @@ MUSTER_KATEGORIEN = {
 # Jedes Muster hat: keywords (Liste), name, spiegel, schritt
 MUSTER_SIGNALE = {
     "rueckzug": {
-        # Fix 4: breitere Einzelwörter ("weg", "allein") entfernt, spezifischere Phrasen behalten
         "keywords": ["zurückzieh", "verschwind", "versteck", "schweig",
-                     "rückzug", "unsichtbar", "will weg", "ganz allein"],
+                     "rückzug", "unsichtbar", "will weg", "ganz allein",
+                     "niemand versteht", "lass mich", "bin nicht da", "zieh mich"],
         "name": "Rückzug / Unsichtbar werden",
         "spiegel": "Das könnte nach dem Rückzugsmuster klingen — etwas in dir will gerade verschwinden.",
         "schritt": "Du musst nicht verschwinden. Du kannst bleiben — auch wenn es sich falsch anfühlt.",
@@ -61,14 +61,16 @@ MUSTER_SIGNALE = {
     "druck": {
         # Fix 4: "muss", "soll" entfernt — zu breit. Nur in Kombination sinnvoll
         "keywords": ["unter druck", "so viel druck", "stress", "funktionier",
-                     "nicht gut genug", "leistung", "versag", "ich schaffe das nicht"],
+                     "nicht gut genug", "leistung", "versag", "ich schaffe das nicht",
+                     "erschöpft", "ausgebrannt", "leer", "keine kraft", "überwältigt"],
         "name": "Leistungsdruck / Funktionieren",
         "spiegel": "Das könnte nach dem Leistungsmuster klingen — das Gefühl, nicht genug zu sein.",
         "schritt": "Dieser Druck ist nicht die Wahrheit. Er ist ein altes Signal — kein Fakt.",
     },
     "wut": {
         "keywords": ["wut", "genervt", "ärgert mich", "unfair", "ungerecht",
-                     "warum immer", "wütend", "könnt kotzen"],
+                     "warum immer", "wütend", "könnt kotzen",
+                     "nervt", "macht mich wahnsinnig", "so ein mist", "bringt mich auf"],
         "name": "Ungeduld / aufgestauter Schmerz",
         "spiegel": "Das könnte nach aufgestautem Schmerz klingen — Wut ist oft ein Signal, dass etwas Tieferes gehört werden will.",
         "schritt": "Was verletzt dich gerade wirklich — nicht das Äußere, sondern das Innere?",
@@ -76,7 +78,8 @@ MUSTER_SIGNALE = {
     "angst": {
         # Fix 4: "passiert", "schlimm" entfernt — zu allgemein
         "keywords": ["angst", "sorge", "was wenn", "verlier", "scheitern",
-                     "furcht", "erschreck", "geht schief"],
+                     "furcht", "erschreck", "geht schief",
+                     "herzklopfen", "zittern", "magen", "und wenn das", "und wenn ich"],
         "name": "Angst / Katastrophendenken",
         "spiegel": "Das könnte nach dem Angstmuster klingen — worst-case-Szenarien, die das Muster malt.",
         "schritt": "Was ist gerade, in diesem Moment, wirklich wahr? Nur dieser eine Moment.",

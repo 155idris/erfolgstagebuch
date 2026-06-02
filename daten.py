@@ -32,6 +32,7 @@ KATEGORIEN = [
     "🏷️ Gefühl benannt",
     "🤝 Gefühl angenommen",
     "🔄 Gefühl verarbeitet / transformiert",
+    "🙏 Tagesreflexion",
 ]
 
 # PCEP: Set für schnelle Mitgliedschaftsprüfung
@@ -278,6 +279,56 @@ def neuer_rueckblick_eintrag(text, kategorien, intensitaet):
     # PCEP: Funktion aufrufen, Liste erweitern (append), File I/O
     eintraege = lade_eintraege()
     eintrag["synced"] = False
+    eintraege.append(eintrag)
+    _schreibe_eintraege(eintraege)
+
+    if notion_sync.sync_eintrag(eintrag):
+        eintraege[-1]["synced"] = True
+        _schreibe_eintraege(eintraege)
+
+
+def neue_reflexion_eintrag(dankbarkeit, freude_erhalten, freude_gegeben, freier_raum):
+    """Erstellt und speichert einen strukturierten Tagesreflexions-Eintrag.
+
+    PCEP-Konzepte: Funktionen, Conditionals, Listen, Dictionaries, String-Join
+    Parameter: dankbarkeit     — Antwort auf Dankbarkeits-Frage (String, kann leer sein)
+               freude_erhalten — Was heute Freude bereitet hat (String, kann leer sein)
+               freude_gegeben  — Wem Freude gegeben wurde (String, kann leer sein)
+               freier_raum     — optionaler weiterer Text (String, kann leer sein)
+    """
+    # PCEP: Liste aufbauen — nur ausgefüllte Felder zusammenfassen
+    teile = []
+    if dankbarkeit:
+        teile.append(f"Dankbarkeit: {dankbarkeit}")
+    if freude_erhalten:
+        teile.append(f"Freude erhalten: {freude_erhalten}")
+    if freude_gegeben:
+        teile.append(f"Freude gegeben: {freude_gegeben}")
+    if freier_raum:
+        teile.append(freier_raum)
+
+    # PCEP: String-Join — Teile zu einem lesbaren Text verbinden
+    text = " · ".join(teile)
+
+    eintrag = {
+        "datum":            datetime.now().strftime("%d.%m.%Y"),
+        "uhrzeit":          datetime.now().strftime("%H:%M"),
+        "modus":            "reflexion",
+        "text":             text,
+        "dankbarkeit":      dankbarkeit,
+        "freude_erhalten":  freude_erhalten,
+        "freude_gegeben":   freude_gegeben,
+        "freier_raum":      freier_raum,
+        "kategorien":       ["🙏 Tagesreflexion"],
+        "ist_hauptmuster":  False,
+        "intensitaet":      0,
+        "erkannte_signale": [],
+        "spiegel":          "",
+        "schritt":          "",
+        "synced":           False,
+    }
+
+    eintraege = lade_eintraege()
     eintraege.append(eintrag)
     _schreibe_eintraege(eintraege)
 

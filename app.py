@@ -187,6 +187,8 @@ if "akut_letztes_ergebnis" not in st.session_state:
     st.session_state.akut_letztes_ergebnis = None
 if "rueckblick_letztes_ergebnis" not in st.session_state:
     st.session_state.rueckblick_letztes_ergebnis = None
+if "reflexion_counter" not in st.session_state:
+    st.session_state.reflexion_counter = 0
 if "verlauf_zeige_n" not in st.session_state:
     st.session_state.verlauf_zeige_n = 10
 if "verlauf_bearbeiten_idx" not in st.session_state:
@@ -326,64 +328,106 @@ with tab1:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — RÜCKBLICK
-# Abendlicher oder nachträglicher Erfolgs-Eintrag
+# TAB 2 — TAGESREFLEXION
+# Drei Fragen die zum positiven Sehen einladen — alle optional
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    st.markdown("### Was ist heute gelungen?")
-
-    # PCEP: Variablen für Eingabewerte
-    text = st.text_area(
-        label="Erfolg beschreiben",
-        placeholder="Beschreibe den Moment — was du wahrgenommen, erkannt oder anders gewählt hast...",
-        height=130,
-        label_visibility="collapsed"
-    )
-
+    st.markdown("### Was war heute gut?")
     st.markdown(
-        '<p style="color:#888;font-size:0.75rem;text-transform:uppercase;'
-        'letter-spacing:0.08em;margin-top:0.5rem;">Kategorien (Mehrfachauswahl möglich)</p>',
+        '<p style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;">'
+        'Alle Felder optional — schreib was dir in den Sinn kommt.</p>',
         unsafe_allow_html=True
     )
 
-    # PCEP: Rückgabe ist eine Liste der gewählten Strings
-    kategorien = st.multiselect(
-        label="Kategorien",
-        options=daten.KATEGORIEN,
-        label_visibility="collapsed"
+    # PCEP: Counter-Key — Felder leeren sich nach dem Speichern
+    rc = st.session_state.reflexion_counter
+
+    # ── Frage 1: Dankbarkeit ──────────────────────────────────────────────────
+    st.markdown(
+        '<p style="color:#c4a35a;font-size:0.78rem;text-transform:uppercase;'
+        'letter-spacing:0.1em;margin-bottom:0.3rem;">🙏 &nbsp;Wofür bin ich heute dankbar?</p>',
+        unsafe_allow_html=True
+    )
+    dankbarkeit = st.text_area(
+        label="Dankbarkeit",
+        placeholder="Drei Momente — auch kleine zählen...",
+        height=160,
+        label_visibility="collapsed",
+        key=f"ref_dankbarkeit_{rc}"
     )
 
-    # PCEP: any() + Membership-Test (in) — prüft ob mindestens eine Muster-Kategorie gewählt
-    if any(k in daten.MUSTER_KATEGORIEN for k in kategorien):
-        st.markdown(
-            '<div style="background:#1a1a1a;border:1px solid #c4a35a;border-radius:6px;'
-            'padding:0.6rem 1rem;margin:0.5rem 0;">'
-            '<p style="color:#c4a35a;margin:0;font-size:0.85rem;">⚡ Hauptmuster-Moment erkannt.</p>'
-            '</div>',
-            unsafe_allow_html=True
-        )
+    st.markdown("<div style='margin-top:1.2rem'></div>", unsafe_allow_html=True)
 
-    # PCEP: Integer-Variable aus Slider (Wertebereich 1–5)
-    intensitaet = st.slider(
-        "Intensität dieses Moments",
-        min_value=1, max_value=5, value=3,
-        help="Wie bedeutsam war dieser Moment für dich?"
+    # ── Frage 2: Freude erhalten ──────────────────────────────────────────────
+    st.markdown(
+        '<p style="color:#c4a35a;font-size:0.78rem;text-transform:uppercase;'
+        'letter-spacing:0.1em;margin-bottom:0.3rem;">✨ &nbsp;Was hat mir heute Freude bereitet?</p>',
+        unsafe_allow_html=True
+    )
+    freude_erhalten = st.text_area(
+        label="Freude erhalten",
+        placeholder="Ein Moment der sich gut angefühlt hat...",
+        height=120,
+        label_visibility="collapsed",
+        key=f"ref_freude_erhalten_{rc}"
+    )
+
+    st.markdown("<div style='margin-top:1.2rem'></div>", unsafe_allow_html=True)
+
+    # ── Frage 3: Freude gegeben ───────────────────────────────────────────────
+    st.markdown(
+        '<p style="color:#c4a35a;font-size:0.78rem;text-transform:uppercase;'
+        'letter-spacing:0.1em;margin-bottom:0.3rem;">🤝 &nbsp;Wen habe ich heute Freude bereitet?</p>',
+        unsafe_allow_html=True
+    )
+    freude_gegeben = st.text_area(
+        label="Freude gegeben",
+        placeholder="Jemand dem du heute etwas gegeben hast...",
+        height=120,
+        label_visibility="collapsed",
+        key=f"ref_freude_gegeben_{rc}"
+    )
+
+    st.markdown("<div style='margin-top:1.2rem'></div>", unsafe_allow_html=True)
+
+    # ── Freier Raum (optional) ────────────────────────────────────────────────
+    st.markdown(
+        '<p style="color:#555;font-size:0.78rem;text-transform:uppercase;'
+        'letter-spacing:0.1em;margin-bottom:0.3rem;">📝 &nbsp;Gibt es noch etwas das du festhalten möchtest?</p>',
+        unsafe_allow_html=True
+    )
+    freier_raum = st.text_area(
+        label="Freier Raum",
+        placeholder="Optional...",
+        height=100,
+        label_visibility="collapsed",
+        key=f"ref_freier_raum_{rc}"
     )
 
     st.markdown("")
 
-    if st.button("Erfolg speichern", key="rueckblick_save"):
-        # PCEP: Mehrfach-Conditional zur Eingabe-Validierung
-        if not text:
-            st.warning("Bitte beschreibe den Erfolg.")
-            st.session_state.rueckblick_letztes_ergebnis = None
-        elif not kategorien:
-            st.warning("Bitte wähle mindestens eine Kategorie.")
+    if st.button("Speichern", key="reflexion_save"):
+        # PCEP: any() — mindestens ein Feld muss ausgefüllt sein
+        if not any([dankbarkeit, freude_erhalten, freude_gegeben, freier_raum]):
+            st.warning("Füll mindestens eine Frage aus — auch ein Satz reicht.")
             st.session_state.rueckblick_letztes_ergebnis = None
         else:
-            daten.neuer_rueckblick_eintrag(text, kategorien, intensitaet)
-            erfolg = daten.erkenne_erfolgs_stufe(text, kategorien)
+            daten.neue_reflexion_eintrag(dankbarkeit, freude_erhalten, freude_gegeben, freier_raum)
+
+            # PCEP: Conditionals — Erfolgs-Stufe aus ausgefüllten Feldern berechnen
+            felder = sum(bool(f) for f in [dankbarkeit, freude_erhalten, freude_gegeben])
+            if freude_gegeben:
+                erfolg = daten.ERFOLGS_STUFEN[0]   # ✨ nach außen gehandelt
+            elif felder == 3:
+                erfolg = daten.ERFOLGS_STUFEN[1]   # 👁️ alles beantwortet
+            elif felder == 2:
+                erfolg = daten.ERFOLGS_STUFEN[3]   # 💛 zwei Fragen
+            else:
+                erfolg = daten.ERFOLG_BASIS         # 🌱 ein Moment reicht
+
             st.session_state.rueckblick_letztes_ergebnis = erfolg
+            st.session_state.reflexion_counter += 1
+            st.rerun()
 
     # ── Erfolgs-Moment nach Speichern ─────────────────────────────────────────
     if st.session_state.rueckblick_letztes_ergebnis:
@@ -506,7 +550,18 @@ with tab4:
                     spalte_text, spalte_meta = st.columns([3, 1])
 
                     with spalte_text:
-                        st.write(e["text"])
+                        # PCEP: Conditional — je nach Modus unterschiedliche Anzeige
+                        if e.get("modus") == "reflexion":
+                            if e.get("dankbarkeit"):
+                                st.markdown(f"🙏 **Dankbarkeit:** {e['dankbarkeit']}")
+                            if e.get("freude_erhalten"):
+                                st.markdown(f"✨ **Freude erhalten:** {e['freude_erhalten']}")
+                            if e.get("freude_gegeben"):
+                                st.markdown(f"🤝 **Freude gegeben:** {e['freude_gegeben']}")
+                            if e.get("freier_raum"):
+                                st.markdown(f"📝 {e['freier_raum']}")
+                        else:
+                            st.write(e["text"])
 
                         if e.get("modus") == "akut":
                             signale = e.get("erkannte_signale", [])

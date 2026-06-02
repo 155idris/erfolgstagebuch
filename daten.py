@@ -95,6 +95,125 @@ MUSTER_SIGNALE = {
 }
 
 
+# ─── Erfolgs-Stufen ───────────────────────────────────────────────────────────
+
+# PCEP: Liste von Dictionaries — Erfolgs-Signale in absteigender Priorität
+ERFOLGS_STUFEN = [
+    {
+        "stufe": 5,
+        "emoji": "✨",
+        "label": "Befreiungsmoment",
+        "keywords": [
+            "stolz", "geschafft", "befreit", "glücklich", "dankbar",
+            "anders gemacht", "nicht gefolgt", "widerstanden", "diesmal anders",
+            "zum ersten mal", "bewusst entschieden", "frei gefühlt", "bin froh",
+        ],
+        "nachricht": "Das freut mich wirklich für dich. Lass das ankommen. ✨",
+    },
+    {
+        "stufe": 4,
+        "emoji": "👁️",
+        "label": "Muster gesehen",
+        "keywords": [
+            "muster", "autopilot", "erkenne", "erkannt", "merke dass ich",
+            "bemerkt", "wieder passiert", "automatisch", "wie immer",
+            "schon wieder", "reaktion", "alte gewohnheit",
+        ],
+        "nachricht": "Du hast das Muster gesehen. Sehen ist der erste Schritt. 👁️",
+    },
+    {
+        "stufe": 3,
+        "emoji": "🫀",
+        "label": "Körper gehört",
+        "keywords": [
+            "körper", "brust", "magen", "bauch", "herz", "atem",
+            "enge", "spannung", "zittern", "anspannung", "verkrampft",
+            "schwere", "kribbeln", "entspannung",
+        ],
+        "nachricht": "Du hörst deinem Körper zu. Er weiß es immer zuerst. 🫀",
+    },
+    {
+        "stufe": 2,
+        "emoji": "💛",
+        "label": "Gefühl benannt",
+        "keywords": [
+            "fühle", "spüre", "empfinde", "emotion", "gefühl",
+            "traurig", "müde", "einsam", "überfordert", "erleichtert",
+            "nervös", "aufgeregt", "wütend", "ängstlich", "erschöpft",
+        ],
+        "nachricht": "Du hast in Worte gefasst was du fühlst. Das braucht Mut. 💛",
+    },
+]
+
+# PCEP: Dictionary — Basis-Erfolg (immer, wenn gespeichert wird)
+ERFOLG_BASIS = {
+    "stufe": 1,
+    "emoji": "🌱",
+    "label": "Moment gegeben",
+    "nachricht": "Du hast hingeschaut. Das ist nicht selbstverständlich. 🌱",
+}
+
+
+def erkenne_erfolgs_stufe(text, kategorien=None):
+    """Bestimmt die Erfolgs-Stufe eines Eintrags anhand von Text und Kategorien.
+
+    PCEP-Konzepte: Funktionen, Schleifen, Conditionals, in-Operator, max()
+    Stufe 1 (Basis):     Immer — einfach geschrieben und gespeichert
+    Stufe 2 (Gefühl):    Emotion oder Empfindung benannt
+    Stufe 3 (Körper):    Körpergefühl beschrieben
+    Stufe 4 (Muster):    Verhalten oder Muster erkannt
+    Stufe 5 (Befreiung): Stolz, Dankbarkeit, neues Verhalten
+    Parameter: text       — Freitext des Eintrags (String)
+               kategorien — gewählte Kategorien im Rückblick (Liste, optional)
+    Rückgabe:  Dictionary mit stufe, emoji, label, nachricht
+    """
+    if kategorien is None:
+        kategorien = []
+
+    text_klein = text.lower()  # PCEP: String-Methode lower()
+
+    # Kategorie-basierte Mindest-Stufe (für Rückblick-Tab)
+    stufe_aus_kategorie = 1
+    if "🌱 Neues Verhalten gewählt — Muster nicht gefolgt" in kategorien:
+        stufe_aus_kategorie = 5
+    elif any(k in kategorien for k in [
+        "⚡ Hauptmuster erkannt (im Moment)",
+        "🪞 Hauptmuster erkannt (beim Reflektieren)",
+    ]):
+        stufe_aus_kategorie = 4
+    elif any(k in kategorien for k in [
+        "🔄 Gefühl verarbeitet / transformiert",
+        "🤝 Gefühl angenommen",
+    ]):
+        stufe_aus_kategorie = 3
+    elif any(k in kategorien for k in [
+        "🏷️ Gefühl benannt",
+        "👁️ Gefühl wahrgenommen",
+    ]):
+        stufe_aus_kategorie = 2
+
+    # Text-basierte Stufe — höchste Übereinstimmung gewinnt
+    stufe_aus_text = 1
+    for stufen_data in ERFOLGS_STUFEN:
+        for keyword in stufen_data["keywords"]:
+            if keyword in text_klein:
+                stufe_aus_text = max(stufe_aus_text, stufen_data["stufe"])  # PCEP: max()
+                break
+
+    # PCEP: max() — höchste Stufe aus beiden Quellen
+    hoechste_stufe = max(stufe_aus_kategorie, stufe_aus_text)
+
+    if hoechste_stufe <= 1:
+        return ERFOLG_BASIS
+
+    # Passendes Stufen-Dict zurückgeben
+    for stufen_data in ERFOLGS_STUFEN:
+        if stufen_data["stufe"] == hoechste_stufe:
+            return stufen_data
+
+    return ERFOLG_BASIS
+
+
 # ─── File I/O Funktionen ──────────────────────────────────────────────────────
 
 def lade_eintraege():

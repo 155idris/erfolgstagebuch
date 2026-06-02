@@ -163,8 +163,16 @@ st.markdown("---")
 # ─── Tabs ─────────────────────────────────────────────────────────────────────
 # PCEP: Mehrere Variablen in einer Zuweisung (Tuple-Unpacking)
 # Session State initialisieren — Text bleibt erhalten beim Tab-Wechsel
-if "akut_text_gespeichert" not in st.session_state:
-    st.session_state.akut_text_gespeichert = ""
+if "akut_counter" not in st.session_state:
+    st.session_state.akut_counter = 0
+if "akut_bearbeiten" not in st.session_state:
+    st.session_state.akut_bearbeiten = ""
+if "akut_letzter_text" not in st.session_state:
+    st.session_state.akut_letzter_text = ""
+if "akut_letztes_ergebnis" not in st.session_state:
+    st.session_state.akut_letztes_ergebnis = None
+if "rueckblick_letztes_ergebnis" not in st.session_state:
+    st.session_state.rueckblick_letztes_ergebnis = None
 
 tab1, tab2, tab3 = st.tabs([
     "⚡  Ich merke gerade etwas",
@@ -181,19 +189,19 @@ with tab1:
     st.markdown("### Was ist gerade?")
     st.markdown(
         '<p style="color:#6b5a40;font-size:0.9rem;">'
-        'Einfach rausschreiben was ist. Kein Format, kein Struktur.</p>',
+        'Einfach rausschreiben was ist. Kein Format, keine Struktur.</p>',
         unsafe_allow_html=True
     )
 
-    # PCEP: String-Variable — value aus session_state damit Tab-Wechsel Text erhält
+    # PCEP: Schlüssel enthält Counter → neues Widget = Feld geleert nach Speichern
     akut_text = st.text_area(
         label="Freies Schreiben",
         placeholder="Was passiert gerade? Was fühlst du? Was läuft ab?\n\n"
                     "Einfach schreiben — die App hört zu.",
         height=180,
         label_visibility="collapsed",
-        key="akut_freitext",
-        value=st.session_state.akut_text_gespeichert
+        key=f"akut_freitext_{st.session_state.akut_counter}",
+        value=st.session_state.akut_bearbeiten
     )
 
     st.markdown("")
@@ -203,62 +211,99 @@ with tab1:
         if akut_text:
             # PCEP: Tuple-Unpacking — 3 Rückgabewerte der Analysefunktion
             erkannte_signale, spiegel, schritt = daten.analysiere_akut_text(akut_text)
-
             daten.neuer_akut_eintrag(akut_text, erkannte_signale, spiegel, schritt)
-            st.session_state.akut_text_gespeichert = ""  # Text nach Speichern leeren
+            erfolg = daten.erkenne_erfolgs_stufe(akut_text)
 
-            # ── Spiegel anzeigen ─────────────────────────────────────────
-            st.markdown("---")
-            st.markdown(
-                '<p style="color:#8a8070;font-size:0.72rem;text-transform:uppercase;'
-                'letter-spacing:0.1em;">Was ich höre</p>',
-                unsafe_allow_html=True
-            )
-
-            # Fix 5: Usertext mit html.escape() absichern vor Einbettung in HTML
-            vorschau_text = html.escape(akut_text[:120]) + ("..." if len(akut_text) > 120 else "")
-            st.markdown(
-                f'<p style="color:#c8bfa8;font-style:italic;font-size:0.95rem;">'
-                f'„{vorschau_text}"</p>',
-                unsafe_allow_html=True
-            )
-
-            # PCEP: Conditional — Muster-Box nur wenn erkannt
-            if erkannte_signale:
-                # PCEP: String-Join — Liste zu kommasepariertem String
-                signale_str = html.escape(", ".join(erkannte_signale))  # Fix 5
-                st.markdown(
-                    f'<div style="background:#1a1200;border:1px solid #f59e0b;'
-                    f'border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;">'
-                    f'<p style="color:#f59e0b;margin:0 0 0.3rem;font-size:0.72rem;'
-                    f'text-transform:uppercase;letter-spacing:0.1em;">Das könnte klingen nach</p>'
-                    f'<p style="color:#f5f0e8;font-size:1rem;margin:0;">{signale_str}</p>'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-
-            # Spiegel-Text (kommt aus daten.py, kein Usertext → kein Escaping nötig)
-            st.markdown(
-                f'<div style="background:#0e0c08;border-left:3px solid #f59e0b;'
-                f'padding:0.8rem 1rem;margin:0.5rem 0;">'
-                f'<p style="color:#c8bfa8;margin:0;">{spiegel}</p>'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-
-            # Freier Schritt
-            st.markdown(
-                f'<div style="background:#0a1a0e;border-left:3px solid #4ab86c;'
-                f'padding:0.8rem 1rem;margin:0.5rem 0;">'
-                f'<p style="color:#8a8070;margin:0 0 0.2rem;font-size:0.72rem;'
-                f'text-transform:uppercase;letter-spacing:0.1em;">Eine Möglichkeit jetzt</p>'
-                f'<p style="color:#c8bfa8;margin:0;">{schritt}</p>'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-
+            # Ergebnis in session_state speichern, Feld leeren, neu rendern
+            st.session_state.akut_letzter_text = akut_text
+            st.session_state.akut_letztes_ergebnis = {
+                "erkannte": erkannte_signale,
+                "spiegel": spiegel,
+                "schritt": schritt,
+                "erfolg": erfolg,
+            }
+            st.session_state.akut_bearbeiten = ""
+            st.session_state.akut_counter += 1  # PCEP: Zähler erhöhen → neues Widget
+            st.rerun()
         else:
             st.warning("Schreib etwas — auch wenn es nur ein Satz ist.")
+
+    # ── Letztes Ergebnis anzeigen (bleibt nach Speichern sichtbar) ───────────
+    if st.session_state.akut_letztes_ergebnis:
+        ergebnis     = st.session_state.akut_letztes_ergebnis
+        letzter_text = st.session_state.akut_letzter_text
+        erkannte_signale = ergebnis["erkannte"]
+        spiegel          = ergebnis["spiegel"]
+        schritt          = ergebnis["schritt"]
+        erfolg           = ergebnis["erfolg"]
+
+        st.markdown("---")
+
+        # ── Erfolgs-Moment ────────────────────────────────────────────────────
+        st.markdown(
+            f'<div style="background:#1a1200;border:1px solid #f59e0b;'
+            f'border-radius:10px;padding:1rem 1.4rem;margin-bottom:1rem;">'
+            f'<p style="color:#f59e0b;font-size:1.05rem;margin:0;">'
+            f'{erfolg["emoji"]} {erfolg["nachricht"]}</p>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        # ── Spiegel ───────────────────────────────────────────────────────────
+        st.markdown(
+            '<p style="color:#8a8070;font-size:0.72rem;text-transform:uppercase;'
+            'letter-spacing:0.1em;">Was ich höre</p>',
+            unsafe_allow_html=True
+        )
+
+        # PCEP: html.escape() — Usertext absichern vor HTML-Einbettung
+        vorschau_text = html.escape(letzter_text[:120]) + ("..." if len(letzter_text) > 120 else "")
+        st.markdown(
+            f'<p style="color:#c8bfa8;font-style:italic;font-size:0.95rem;">'
+            f'„{vorschau_text}"</p>',
+            unsafe_allow_html=True
+        )
+
+        # PCEP: Conditional — Muster-Box nur wenn erkannt
+        if erkannte_signale:
+            # PCEP: String-Join — Liste zu kommasepariertem String
+            signale_str = html.escape(", ".join(erkannte_signale))
+            st.markdown(
+                f'<div style="background:#1a1200;border:1px solid #f59e0b;'
+                f'border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;">'
+                f'<p style="color:#f59e0b;margin:0 0 0.3rem;font-size:0.72rem;'
+                f'text-transform:uppercase;letter-spacing:0.1em;">Das könnte klingen nach</p>'
+                f'<p style="color:#f5f0e8;font-size:1rem;margin:0;">{signale_str}</p>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+        st.markdown(
+            f'<div style="background:#0e0c08;border-left:3px solid #f59e0b;'
+            f'padding:0.8rem 1rem;margin:0.5rem 0;">'
+            f'<p style="color:#c8bfa8;margin:0;">{spiegel}</p>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            f'<div style="background:#140f00;border-left:3px solid #d97706;'
+            f'padding:0.8rem 1rem;margin:0.5rem 0;">'
+            f'<p style="color:#8a8070;margin:0 0 0.2rem;font-size:0.72rem;'
+            f'text-transform:uppercase;letter-spacing:0.1em;">Eine Möglichkeit jetzt</p>'
+            f'<p style="color:#c8bfa8;margin:0;">{schritt}</p>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown("")
+
+        # ── Bearbeiten-Button ─────────────────────────────────────────────────
+        if st.button("✏️ Text bearbeiten", key="akut_bearbeiten_btn"):
+            st.session_state.akut_bearbeiten = letzter_text
+            st.session_state.akut_letztes_ergebnis = None
+            st.session_state.akut_counter += 1
+            st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -312,11 +357,26 @@ with tab2:
         # PCEP: Mehrfach-Conditional zur Eingabe-Validierung
         if not text:
             st.warning("Bitte beschreibe den Erfolg.")
+            st.session_state.rueckblick_letztes_ergebnis = None
         elif not kategorien:
             st.warning("Bitte wähle mindestens eine Kategorie.")
+            st.session_state.rueckblick_letztes_ergebnis = None
         else:
             daten.neuer_rueckblick_eintrag(text, kategorien, intensitaet)
-            st.success("Gespeichert.")
+            erfolg = daten.erkenne_erfolgs_stufe(text, kategorien)
+            st.session_state.rueckblick_letztes_ergebnis = erfolg
+
+    # ── Erfolgs-Moment nach Speichern ─────────────────────────────────────────
+    if st.session_state.rueckblick_letztes_ergebnis:
+        erfolg = st.session_state.rueckblick_letztes_ergebnis
+        st.markdown(
+            f'<div style="background:#1a1200;border:1px solid #f59e0b;'
+            f'border-radius:10px;padding:1rem 1.4rem;margin-top:1rem;">'
+            f'<p style="color:#f59e0b;font-size:1.05rem;margin:0;">'
+            f'{erfolg["emoji"]} {erfolg["nachricht"]}</p>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -362,7 +422,7 @@ with tab3:
             st.markdown(kachel("⚡ Hauptmuster erkannt", len(muster_woche)), unsafe_allow_html=True)
         with wk2:
             st.markdown(kachel("🌱 Neues Verhalten gewählt", len(neues_verhalten),
-                               farbe="#4ab86c", rahmen="#4ab86c", hintergrund="#0a1a0e"), unsafe_allow_html=True)
+                               farbe="#f59e0b", rahmen="#f59e0b", hintergrund="#1a1200"), unsafe_allow_html=True)
         with wk3:
             st.markdown(kachel("👁️ Präsenz-Momente", len(akut_woche)), unsafe_allow_html=True)
 
@@ -426,7 +486,7 @@ with tab3:
                             st.markdown(f"🪞 **Spiegel:** {spiegel_text}")
                         schritt_text = e.get("schritt", "")
                         if schritt_text:
-                            st.markdown(f"🌱 **Möglicher Schritt:** {schritt_text}")
+                            st.markdown(f"✦ **Möglicher Schritt:** {schritt_text}")
 
                 with spalte_meta:
                     # PCEP: for-Schleife über eine Liste von Strings

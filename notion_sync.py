@@ -129,6 +129,99 @@ def sync_eintrag(eintrag):
         return False
 
 
+KATEGORIEN_REVERSE_MAP = {
+    "Hauptmuster erkannt":    "⚡ Hauptmuster erkannt (im Moment)",
+    "Neues Verhalten":        "🌱 Neues Verhalten gewählt — Muster nicht gefolgt",
+    "Gefühl wahrgenommen":    "👁️ Gefühl wahrgenommen",
+    "Gefühl benannt":         "🏷️ Gefühl benannt",
+    "Gefühl angenommen":      "🤝 Gefühl angenommen",
+    "Gefühl transformiert":   "🔄 Gefühl verarbeitet / transformiert",
+}
+
+
+def lade_eintraege_von_notion():
+    """Lädt alle Einträge aus Notion und gibt sie als Liste zurück.
+
+    PCEP-Konzepte: Funktionen, Schleifen, Dictionaries, try/except
+    Rückgabe: Liste mit Eintrags-Dictionaries (leer bei Fehler/offline)
+    """
+    notion = _verbinde()
+    if not notion:
+        return []
+
+    try:
+        # Alle Seiten aus der Datenbank laden, sortiert nach Datum
+        response = notion.databases.query(
+            database_id=NOTION_DATABASE_ID,
+            sorts=[{"property": "Datum", "direction": "ascending"}],
+            page_size=100
+        )
+
+        eintraege = []
+
+        # PCEP: Schleife über alle Notion-Seiten
+        for page in response.get("results", []):
+            props = page["properties"]
+
+            # Text (Title-Feld)
+            text_blocks = props.get("Text", {}).get("title", [])
+            text = text_blocks[0]["text"]["content"] if text_blocks else ""
+            if not text:
+                continue  # Leere Einträge überspringen
+
+            # Datum: ISO → deutsches Format
+            datum_iso = props.get("Datum", {}).get("date", {}).get("start", "")
+            try:
+                datum = datetime.strptime(datum_iso, "%Y-%m-%d").strftime("%d.%m.%Y")
+            except ValueError:
+                datum = datetime.now().strftime("%d.%m.%Y")
+
+            # Modus
+            modus_select = props.get("Modus", {}).get("select")
+            modus = modus_select["name"] if modus_select else "rueckblick"
+
+            # Kategorien: Notion-Kurznamen → App-Namen
+            kat_options = props.get("Kategorien", {}).get("multi_select", [])
+            kategorien = [
+                KATEGORIEN_REVERSE_MAP.get(k["name"], k["name"])
+                for k in kat_options
+            ]
+
+            # Ist Hauptmuster
+            ist_hauptmuster = props.get("Ist Hauptmuster", {}).get("checkbox", False)
+
+            # Intensität
+            intensitaet = props.get("Intensität", {}).get("number", 0) or 0
+
+            # Hilfsfunktion für Rich-Text-Felder
+            def get_rt(prop_name):
+                rt = props.get(prop_name, {}).get("rich_text", [])
+                return rt[0]["text"]["content"] if rt else ""
+
+            signale_str = get_rt("Erkannte Signale")
+            erkannte_signale = [s.strip() for s in signale_str.split(",")] if signale_str else []
+
+            eintrag = {
+                "datum":            datum,
+                "uhrzeit":          "",   # Notion speichert keine Uhrzeit
+                "modus":            modus,
+                "text":             text,
+                "kategorien":       kategorien,
+                "ist_hauptmuster":  ist_hauptmuster,
+                "intensitaet":      intensitaet,
+                "erkannte_signale": erkannte_signale,
+                "spiegel":          get_rt("Spiegel"),
+                "schritt":          get_rt("Schritt"),
+                "synced":           True,
+            }
+            eintraege.append(eintrag)
+
+        return eintraege
+
+    except Exception:
+        return []
+
+
 def sync_ausstehende(eintraege):
     """Synchronisiert alle Einträge die noch nicht in Notion sind.
     PCEP: Schleifen, Conditionals, Zähler-Variable, Liste modifizieren

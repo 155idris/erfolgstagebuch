@@ -141,8 +141,13 @@ def kachel(titel, wert, farbe="#c4a35a", rahmen="#c4a35a", hintergrund="#1a1a1a"
 # PCEP: f-String für dynamisches Datum
 heute_str = datetime.now().strftime("%d.%m.%Y")
 
-# Ausstehende Einträge beim Start synchronisieren
+# Beim Start: Notion als Quelle der Wahrheit laden (einmal pro Session)
 if "sync_done" not in st.session_state:
+    if notion_sync.notion_verfuegbar():
+        notion_eintraege = notion_sync.lade_eintraege_von_notion()
+        if notion_eintraege:
+            daten._schreibe_eintraege(notion_eintraege)
+    # Lokale Einträge die noch nicht in Notion sind, hochladen
     alle = daten.lade_eintraege()
     aktualisiert, gesynct = notion_sync.sync_ausstehende(alle)
     if gesynct > 0:

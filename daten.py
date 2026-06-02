@@ -374,22 +374,26 @@ def analysiere_akut_text(text):
     return erkannte, spiegel, schritt  # PCEP: Tuple als Rückgabewert
 
 
-def neuer_akut_eintrag(text, erkannte_signale, spiegel, schritt):
+def neuer_akut_eintrag(text, erkannte_signale, spiegel, schritt,
+                        passiert="", gefuehl="", gut_getan=""):
     """Erstellt und speichert einen Akut-Modus-Eintrag.
 
     PCEP-Konzepte: Funktionen, Dictionaries, Listen, Conditionals, datetime
     Parameter:
-        text             — freier Eingabetext (String)
+        text             — kombinierter Text aus allen drei Feldern (String)
         erkannte_signale — Liste der erkannten Muster-Namen
         spiegel          — generierter Spiegel-Text (String)
-        schritt          — vorgeschlagener freier Schritt (String)  ← Fix 1
+        schritt          — vorgeschlagener freier Schritt (String)
+        passiert         — Antwort auf "Was ist passiert?" (String, optional)
+        gefuehl          — Antwort auf "Wie habe ich mich gefühlt?" (String, optional)
+        gut_getan        — Antwort auf "Was hätte mir gut getan?" (String, optional)
     """
-    # Fix 2: Kategorie und ist_hauptmuster abhängig davon ob etwas erkannt wurde
+    # PCEP: Conditional — Kategorie abhängig davon ob Muster erkannt wurde
     if erkannte_signale:
         kategorien = ["⚡ Hauptmuster erkannt (im Moment)"]
         ist_hauptmuster = True
     else:
-        kategorien = ["👁️ Gefühl wahrgenommen"]  # Hinschauen zählt auch ohne Treffer
+        kategorien = ["👁️ Gefühl wahrgenommen"]
         ist_hauptmuster = False
 
     eintrag = {
@@ -397,12 +401,15 @@ def neuer_akut_eintrag(text, erkannte_signale, spiegel, schritt):
         "uhrzeit":           datetime.now().strftime("%H:%M"),
         "modus":             "akut",
         "text":              text,
+        "passiert":          passiert,
+        "gefuehl":           gefuehl,
+        "gut_getan":         gut_getan,
         "kategorien":        kategorien,
         "ist_hauptmuster":   ist_hauptmuster,
         "intensitaet":       0,
         "erkannte_signale":  erkannte_signale,
         "spiegel":           spiegel,
-        "schritt":           schritt,  # Fix 1: jetzt gespeichert
+        "schritt":           schritt,
     }
 
     eintraege = lade_eintraege()

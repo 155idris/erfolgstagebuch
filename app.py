@@ -180,10 +180,12 @@ st.markdown("---")
 # Session State initialisieren — Text bleibt erhalten beim Tab-Wechsel
 if "akut_counter" not in st.session_state:
     st.session_state.akut_counter = 0
-if "akut_bearbeiten" not in st.session_state:
-    st.session_state.akut_bearbeiten = ""
-if "akut_letzter_text" not in st.session_state:
-    st.session_state.akut_letzter_text = ""
+if "akut_bearbeiten_passiert" not in st.session_state:
+    st.session_state.akut_bearbeiten_passiert = ""
+if "akut_bearbeiten_gefuehl" not in st.session_state:
+    st.session_state.akut_bearbeiten_gefuehl = ""
+if "akut_bearbeiten_gut_getan" not in st.session_state:
+    st.session_state.akut_bearbeiten_gut_getan = ""
 if "akut_letztes_ergebnis" not in st.session_state:
     st.session_state.akut_letztes_ergebnis = None
 if "rueckblick_letztes_ergebnis" not in st.session_state:
@@ -205,55 +207,107 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — AKUT-MODUS
-# Freies Schreiben → App analysiert im Hintergrund → Spiegel zurück
+# Drei geführte Fragen → App analysiert → Spiegel zurück
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    st.markdown("### Was ist gerade?")
+    st.markdown("### Ich merke gerade etwas.")
     st.markdown(
-        '<p style="color:#666;font-size:0.9rem;">'
-        'Einfach rausschreiben was ist. Kein Format, keine Struktur.</p>',
+        '<p style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;">'
+        'Beantworte was du kannst — kein Feld ist Pflicht.</p>',
         unsafe_allow_html=True
     )
 
-    # PCEP: Schlüssel enthält Counter → neues Widget = Feld geleert nach Speichern
-    akut_text = st.text_area(
-        label="Freies Schreiben",
-        placeholder="Was passiert gerade? Was fühlst du? Was läuft ab?\n\n"
-                    "Einfach schreiben — die App hört zu.",
-        height=180,
+    # PCEP: Counter-Key → Felder leeren sich nach dem Speichern
+    ac = st.session_state.akut_counter
+
+    # ── Frage 1 ───────────────────────────────────────────────────────────────
+    st.markdown(
+        '<p style="color:#c4a35a;font-size:0.78rem;text-transform:uppercase;'
+        'letter-spacing:0.1em;margin-bottom:0.3rem;">❓ &nbsp;Was ist (gerade) passiert?</p>',
+        unsafe_allow_html=True
+    )
+    passiert = st.text_area(
+        label="Passiert",
+        placeholder="Die Situation, der Moment, der Auslöser...",
+        height=120,
         label_visibility="collapsed",
-        key=f"akut_freitext_{st.session_state.akut_counter}",
-        value=st.session_state.akut_bearbeiten
+        key=f"akut_passiert_{ac}",
+        value=st.session_state.akut_bearbeiten_passiert
+    )
+
+    st.markdown("<div style='margin-top:1.2rem'></div>", unsafe_allow_html=True)
+
+    # ── Frage 2 ───────────────────────────────────────────────────────────────
+    st.markdown(
+        '<p style="color:#c4a35a;font-size:0.78rem;text-transform:uppercase;'
+        'letter-spacing:0.1em;margin-bottom:0.3rem;">💭 &nbsp;Wie habe ich mich in dem Moment gefühlt?</p>',
+        unsafe_allow_html=True
+    )
+    gefuehl = st.text_area(
+        label="Gefühl",
+        placeholder="Was war da — im Körper, im Kopf, im Herz...",
+        height=140,
+        label_visibility="collapsed",
+        key=f"akut_gefuehl_{ac}",
+        value=st.session_state.akut_bearbeiten_gefuehl
+    )
+
+    st.markdown("<div style='margin-top:1.2rem'></div>", unsafe_allow_html=True)
+
+    # ── Frage 3 ───────────────────────────────────────────────────────────────
+    st.markdown(
+        '<p style="color:#c4a35a;font-size:0.78rem;text-transform:uppercase;'
+        'letter-spacing:0.1em;margin-bottom:0.3rem;">🌿 &nbsp;Was hätte mir in dem Moment gut getan?</p>',
+        unsafe_allow_html=True
+    )
+    gut_getan = st.text_area(
+        label="Gut getan",
+        placeholder="Was hättest du gebraucht — von dir oder anderen...",
+        height=120,
+        label_visibility="collapsed",
+        key=f"akut_gut_getan_{ac}",
+        value=st.session_state.akut_bearbeiten_gut_getan
     )
 
     st.markdown("")
 
     if st.button("Speichern & spiegeln", key="akut_save"):
-        # PCEP: Wahrheitswert eines Strings (leer = False)
-        if akut_text:
-            # PCEP: Tuple-Unpacking — 3 Rückgabewerte der Analysefunktion
-            erkannte_signale, spiegel, schritt = daten.analysiere_akut_text(akut_text)
-            daten.neuer_akut_eintrag(akut_text, erkannte_signale, spiegel, schritt)
-            erfolg = daten.erkenne_erfolgs_stufe(akut_text)
+        # PCEP: any() — mindestens ein Feld muss ausgefüllt sein
+        if not any([passiert, gefuehl, gut_getan]):
+            st.warning("Beantworte mindestens eine Frage — auch ein Satz reicht.")
+        else:
+            # PCEP: String-Join — kombinierten Text aus ausgefüllten Feldern bauen
+            teile = [t for t in [passiert, gefuehl, gut_getan] if t]
+            akut_text = " · ".join(teile)
 
-            # Ergebnis in session_state speichern, Feld leeren, neu rendern
-            st.session_state.akut_letzter_text = akut_text
+            # Analyse hauptsächlich auf Gefühl-Feld, ergänzt durch Rest
+            analyse_text = gefuehl if gefuehl else akut_text
+            erkannte_signale, spiegel, schritt = daten.analysiere_akut_text(analyse_text)
+            daten.neuer_akut_eintrag(
+                akut_text, erkannte_signale, spiegel, schritt,
+                passiert=passiert, gefuehl=gefuehl, gut_getan=gut_getan
+            )
+            erfolg = daten.erkenne_erfolgs_stufe(analyse_text)
+
             st.session_state.akut_letztes_ergebnis = {
                 "erkannte": erkannte_signale,
-                "spiegel": spiegel,
-                "schritt": schritt,
-                "erfolg": erfolg,
+                "spiegel":  spiegel,
+                "schritt":  schritt,
+                "erfolg":   erfolg,
+                "passiert": passiert,
+                "gefuehl":  gefuehl,
+                "gut_getan": gut_getan,
             }
-            st.session_state.akut_bearbeiten = ""
-            st.session_state.akut_counter += 1  # PCEP: Zähler erhöhen → neues Widget
+            # Felder leeren
+            st.session_state.akut_bearbeiten_passiert = ""
+            st.session_state.akut_bearbeiten_gefuehl  = ""
+            st.session_state.akut_bearbeiten_gut_getan = ""
+            st.session_state.akut_counter += 1  # PCEP: neuer Counter → neue leere Widgets
             st.rerun()
-        else:
-            st.warning("Schreib etwas — auch wenn es nur ein Satz ist.")
 
-    # ── Letztes Ergebnis anzeigen (bleibt nach Speichern sichtbar) ───────────
+    # ── Letztes Ergebnis anzeigen ─────────────────────────────────────────────
     if st.session_state.akut_letztes_ergebnis:
-        ergebnis     = st.session_state.akut_letztes_ergebnis
-        letzter_text = st.session_state.akut_letzter_text
+        ergebnis         = st.session_state.akut_letztes_ergebnis
         erkannte_signale = ergebnis["erkannte"]
         spiegel          = ergebnis["spiegel"]
         schritt          = ergebnis["schritt"]
@@ -271,24 +325,24 @@ with tab1:
             unsafe_allow_html=True
         )
 
-        # ── Spiegel ───────────────────────────────────────────────────────────
-        st.markdown(
-            '<p style="color:#888;font-size:0.72rem;text-transform:uppercase;'
-            'letter-spacing:0.1em;">Was ich höre</p>',
-            unsafe_allow_html=True
-        )
-
-        # PCEP: html.escape() — Usertext absichern vor HTML-Einbettung
-        vorschau_text = html.escape(letzter_text[:120]) + ("..." if len(letzter_text) > 120 else "")
-        st.markdown(
-            f'<p style="color:#f0ebe0;font-style:italic;font-size:0.95rem;">'
-            f'„{vorschau_text}"</p>',
-            unsafe_allow_html=True
-        )
+        # ── Spiegel — zeigt das Gefühl zurück ────────────────────────────────
+        if ergebnis.get("gefuehl"):
+            st.markdown(
+                '<p style="color:#888;font-size:0.72rem;text-transform:uppercase;'
+                'letter-spacing:0.1em;">Was ich höre</p>',
+                unsafe_allow_html=True
+            )
+            vorschau = html.escape(ergebnis["gefuehl"][:120]) + (
+                "..." if len(ergebnis["gefuehl"]) > 120 else ""
+            )
+            st.markdown(
+                f'<p style="color:#f0ebe0;font-style:italic;font-size:0.95rem;">'
+                f'„{vorschau}"</p>',
+                unsafe_allow_html=True
+            )
 
         # PCEP: Conditional — Muster-Box nur wenn erkannt
         if erkannte_signale:
-            # PCEP: String-Join — Liste zu kommasepariertem String
             signale_str = html.escape(", ".join(erkannte_signale))
             st.markdown(
                 f'<div style="background:#1a1a1a;border:1px solid #c4a35a;'
@@ -321,8 +375,10 @@ with tab1:
         st.markdown("")
 
         # ── Bearbeiten-Button ─────────────────────────────────────────────────
-        if st.button("✏️ Text bearbeiten", key="akut_bearbeiten_btn"):
-            st.session_state.akut_bearbeiten = letzter_text
+        if st.button("✏️ Bearbeiten", key="akut_bearbeiten_btn"):
+            st.session_state.akut_bearbeiten_passiert  = ergebnis.get("passiert", "")
+            st.session_state.akut_bearbeiten_gefuehl   = ergebnis.get("gefuehl", "")
+            st.session_state.akut_bearbeiten_gut_getan = ergebnis.get("gut_getan", "")
             st.session_state.akut_letztes_ergebnis = None
             st.session_state.akut_counter += 1
             st.rerun()
@@ -571,6 +627,16 @@ with tab4:
                             st.write(e["text"])
 
                         if e.get("modus") == "akut":
+                            # Neue Einträge mit Drei-Fragen-Struktur anzeigen
+                            if e.get("passiert"):
+                                st.markdown(f"❓ **Passiert:** {e['passiert']}")
+                            if e.get("gefuehl"):
+                                st.markdown(f"💭 **Gefühlt:** {e['gefuehl']}")
+                            if e.get("gut_getan"):
+                                st.markdown(f"🌿 **Gut getan:** {e['gut_getan']}")
+                            # Ältere Einträge ohne Struktur: Fließtext anzeigen
+                            if not any([e.get("passiert"), e.get("gefuehl"), e.get("gut_getan")]):
+                                st.write(e["text"])
                             signale = e.get("erkannte_signale", [])
                             if signale:
                                 st.markdown(f"⚡ **Könnte klingen nach:** {', '.join(signale)}")

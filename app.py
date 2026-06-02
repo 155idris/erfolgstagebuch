@@ -271,7 +271,7 @@ with tab1:
 
     st.markdown("")
 
-    if st.button("Speichern & spiegeln", key="akut_save"):
+    if st.button("Speichern", key="akut_save"):
         # PCEP: any() — mindestens ein Feld muss ausgefüllt sein
         if not any([passiert, gefuehl, gut_getan]):
             st.warning("Beantworte mindestens eine Frage — auch ein Satz reicht.")

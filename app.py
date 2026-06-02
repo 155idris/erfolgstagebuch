@@ -100,6 +100,7 @@ st.markdown("""
     }
     .stTabs [data-baseweb="tab"] { color: #555; font-size: 0.9rem; }
     .stTabs [aria-selected="true"] { color: #c4a35a !important; border-bottom: 2px solid #c4a35a; }
+    .stTabs [data-baseweb="tab-highlight"] { background-color: #c4a35a !important; height: 2px; }
 
     /* ── Expander ────────────────────────────────────────────────────────── */
     .streamlit-expanderHeader { color: #888 !important; background: #141414; border-radius: 6px; }

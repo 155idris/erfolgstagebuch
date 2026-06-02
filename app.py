@@ -519,7 +519,13 @@ with tab4:
             actual_idx = gesamt - 1 - i  # echter Index in alle_eintraege
 
             # PCEP: Conditional für Modus-Badge
-            badge = "⚡ Akut" if e.get("modus") == "akut" else "📖 Rückblick"
+            # PCEP: if/elif/else — Badge je nach Modus
+            if e.get("modus") == "akut":
+                badge = "⚡ Akut"
+            elif e.get("modus") == "reflexion":
+                badge = "🙏 Reflexion"
+            else:
+                badge = "📖 Rückblick"
             vorschau = e["text"][:55] + "..." if len(e["text"]) > 55 else e["text"]
             titel = f"{e['datum']}  {e.get('uhrzeit', '')} · {badge} · {vorschau}"
 

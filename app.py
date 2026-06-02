@@ -32,8 +32,8 @@ import notion_sync
 
 # ─── Seitenkonfiguration ──────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Erfolgstagebuch",
-    page_icon="⚡",
+    page_title="eB — Innenspiegel",
+    page_icon="🪞",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -150,12 +150,12 @@ notion_badge = (
 
 st.markdown(
     '<h1 style="color:#f59e0b;font-family:Georgia,serif;font-weight:300;margin-bottom:0;">'
-    'Erfolgstagebuch</h1>',
+    'eB &nbsp;<span style="color:#6b5a40;font-size:1rem;font-weight:400;">Innenspiegel</span></h1>',
     unsafe_allow_html=True
 )
 st.markdown(
     f'<p style="color:#4a4030;font-size:0.85rem;margin-top:0;">'
-    f'Dein Weg zur Befreiung · {heute_str} &nbsp;·&nbsp; {notion_badge}</p>',
+    f'emotionales Betriebssystem · {heute_str} &nbsp;·&nbsp; {notion_badge}</p>',
     unsafe_allow_html=True
 )
 st.markdown("---")

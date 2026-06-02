@@ -41,80 +41,89 @@ st.set_page_config(
 # ─── Design (Custom CSS) ──────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    .stApp { background-color: #0b0a08; }
-    .block-container { padding: 2rem 3rem; max-width: 1200px; }
+    /* ── Streamlit-Elemente verstecken ───────────────────────────────────── */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header { visibility: hidden; }
+    [data-testid="stToolbar"] { visibility: hidden; }
+    [data-testid="stDecoration"] { visibility: hidden; }
+    [data-testid="stStatusWidget"] { visibility: hidden; }
 
-    /* Metriken */
+    /* ── Basis ───────────────────────────────────────────────────────────── */
+    .stApp { background-color: #0e0e0e; color: #f0ebe0; }
+    .block-container { padding: 2rem 3rem; max-width: 1100px; }
+    p, .stMarkdown p { color: #f0ebe0; }
+    h1, h2, h3, h4 { color: #f0ebe0; font-family: Georgia, serif; font-weight: 300; }
+    hr { border-color: #2a2a2a; }
+
+    /* ── Metriken ────────────────────────────────────────────────────────── */
     [data-testid="metric-container"] {
-        background: #13110b;
-        border: 1px solid #261f0e;
+        background: #141414;
+        border: 1px solid #2a2a2a;
         border-radius: 8px;
         padding: 1rem 1.2rem;
     }
     [data-testid="metric-container"] label {
-        color: #8a8070 !important;
+        color: #666 !important;
         font-size: 0.7rem !important;
         letter-spacing: 0.08em;
         text-transform: uppercase;
     }
-    [data-testid="stMetricValue"] { color: #f5f0e8 !important; font-size: 2.4rem !important; font-weight: 700 !important; }
+    [data-testid="stMetricValue"] { color: #f0ebe0 !important; font-size: 2.4rem !important; font-weight: 700 !important; }
 
-    /* Buttons */
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
     .stButton > button {
-        background: #f59e0b; color: #0b0a08;
+        background: #c4a35a; color: #0e0e0e;
         border: none; border-radius: 24px;
         font-weight: 700; padding: 0.6rem 2rem;
         transition: background 0.2s;
     }
-    .stButton > button:hover { background: #d97706; color: #0b0a08; }
+    .stButton > button:hover { background: #d4b36a; color: #0e0e0e; }
 
-    /* Eingabefelder */
+    /* ── Eingabefelder ───────────────────────────────────────────────────── */
     .stTextArea textarea, .stTextInput input {
-        background: #0e0c08 !important;
-        border: 1px solid #261f0e !important;
-        color: #f5f0e8 !important;
+        background: #1a1a1a !important;
+        border: 1px solid #333 !important;
+        color: #f0ebe0 !important;
         border-radius: 6px;
     }
     .stTextArea textarea:focus, .stTextInput input:focus {
-        border-color: #f59e0b !important;
-        box-shadow: 0 0 0 1px #f59e0b !important;
+        border-color: #c4a35a !important;
+        box-shadow: 0 0 0 1px #c4a35a !important;
     }
 
-    /* Tabs */
+    /* ── Tabs ────────────────────────────────────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
-        background: #0b0a08;
-        border-bottom: 1px solid #261f0e;
+        background: #0e0e0e;
+        border-bottom: 1px solid #2a2a2a;
         gap: 4px;
     }
-    .stTabs [data-baseweb="tab"] { color: #6b5a40; font-size: 0.9rem; }
-    .stTabs [aria-selected="true"] { color: #f59e0b !important; border-bottom: 2px solid #f59e0b; }
+    .stTabs [data-baseweb="tab"] { color: #555; font-size: 0.9rem; }
+    .stTabs [aria-selected="true"] { color: #c4a35a !important; border-bottom: 2px solid #c4a35a; }
 
-    /* Expander */
-    .streamlit-expanderHeader { color: #8a8070 !important; background: #13110b; border-radius: 6px; }
-    .streamlit-expanderContent { background: #0e0c08; border-radius: 0 0 6px 6px; }
+    /* ── Expander ────────────────────────────────────────────────────────── */
+    .streamlit-expanderHeader { color: #888 !important; background: #141414; border-radius: 6px; }
+    .streamlit-expanderContent { background: #1a1a1a; border-radius: 0 0 6px 6px; }
 
-    /* Trennlinien und allgemeiner Text */
-    hr { border-color: #261f0e; }
-    p, .stMarkdown p { color: #c8bfa8; }
-    h1, h2, h3, h4 { color: #f5f0e8; }
+    /* ── Slider ──────────────────────────────────────────────────────────── */
+    .stSlider [data-baseweb="slider"] [role="slider"] { background: #c4a35a; }
 
-    /* Slider */
-    .stSlider [data-baseweb="slider"] [role="slider"] { background: #f59e0b; }
+    /* ── Multiselect ─────────────────────────────────────────────────────── */
+    [data-testid="stMultiSelect"] { background: #1a1a1a; }
 
-    /* Mobile: größere Touch-Targets, Button immer sichtbar */
+    /* ── Mobile ──────────────────────────────────────────────────────────── */
     @media (max-width: 768px) {
         .block-container { padding: 1rem 1rem; }
         .stTextArea textarea { font-size: 16px !important; min-height: 120px; }
         .stTextInput input { font-size: 16px !important; }
         .stButton > button { width: 100%; font-size: 1rem; padding: 0.8rem; }
-        .stMultiSelect { font-size: 15px; }
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ─── Hilfsfunktion: HTML-Kachel ───────────────────────────────────────────────
-def kachel(titel, wert, farbe="#f59e0b", rahmen="#f59e0b", hintergrund="#1a1200"):
+def kachel(titel, wert, farbe="#c4a35a", rahmen="#c4a35a", hintergrund="#1a1a1a"):
     """Gibt eine farbige Info-Kachel als HTML-String zurück.
     PCEP: Funktionen, f-Strings, String-Rückgabewert
     """
@@ -123,7 +132,7 @@ def kachel(titel, wert, farbe="#f59e0b", rahmen="#f59e0b", hintergrund="#1a1200"
                 padding:0.8rem 1.2rem;margin-bottom:0.5rem;">
         <p style="color:{farbe};margin:0;font-size:0.72rem;text-transform:uppercase;
                   letter-spacing:0.08em;">{titel}</p>
-        <p style="color:#f5f0e8;font-size:2rem;font-weight:700;margin:0;">{wert}</p>
+        <p style="color:#f0ebe0;font-size:2rem;font-weight:700;margin:0;">{wert}</p>
     </div>
     """
 
@@ -145,16 +154,16 @@ notion_ok = notion_sync.notion_verfuegbar()
 notion_badge = (
     '<span style="color:#4ab86c;font-size:0.75rem;">● Notion verbunden</span>'
     if notion_ok else
-    '<span style="color:#6b5a40;font-size:0.75rem;">○ Nur lokal</span>'
+    '<span style="color:#666;font-size:0.75rem;">○ Nur lokal</span>'
 )
 
 st.markdown(
-    '<h1 style="color:#f59e0b;font-family:Georgia,serif;font-weight:300;margin-bottom:0;">'
-    'eB &nbsp;<span style="color:#6b5a40;font-size:1rem;font-weight:400;">Innenspiegel</span></h1>',
+    '<h1 style="color:#c4a35a;font-family:Georgia,serif;font-weight:300;margin-bottom:0;">'
+    'eB &nbsp;<span style="color:#666;font-size:1rem;font-weight:400;">Innenspiegel</span></h1>',
     unsafe_allow_html=True
 )
 st.markdown(
-    f'<p style="color:#4a4030;font-size:0.85rem;margin-top:0;">'
+    f'<p style="color:#444;font-size:0.85rem;margin-top:0;">'
     f'emotionales Betriebssystem · {heute_str} &nbsp;·&nbsp; {notion_badge}</p>',
     unsafe_allow_html=True
 )
@@ -193,7 +202,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.markdown("### Was ist gerade?")
     st.markdown(
-        '<p style="color:#6b5a40;font-size:0.9rem;">'
+        '<p style="color:#666;font-size:0.9rem;">'
         'Einfach rausschreiben was ist. Kein Format, keine Struktur.</p>',
         unsafe_allow_html=True
     )
@@ -246,9 +255,9 @@ with tab1:
 
         # ── Erfolgs-Moment ────────────────────────────────────────────────────
         st.markdown(
-            f'<div style="background:#1a1200;border:1px solid #f59e0b;'
+            f'<div style="background:#1a1a1a;border:1px solid #c4a35a;'
             f'border-radius:10px;padding:1rem 1.4rem;margin-bottom:1rem;">'
-            f'<p style="color:#f59e0b;font-size:1.05rem;margin:0;">'
+            f'<p style="color:#c4a35a;font-size:1.05rem;margin:0;">'
             f'{erfolg["emoji"]} {erfolg["nachricht"]}</p>'
             f'</div>',
             unsafe_allow_html=True
@@ -256,7 +265,7 @@ with tab1:
 
         # ── Spiegel ───────────────────────────────────────────────────────────
         st.markdown(
-            '<p style="color:#8a8070;font-size:0.72rem;text-transform:uppercase;'
+            '<p style="color:#888;font-size:0.72rem;text-transform:uppercase;'
             'letter-spacing:0.1em;">Was ich höre</p>',
             unsafe_allow_html=True
         )
@@ -264,7 +273,7 @@ with tab1:
         # PCEP: html.escape() — Usertext absichern vor HTML-Einbettung
         vorschau_text = html.escape(letzter_text[:120]) + ("..." if len(letzter_text) > 120 else "")
         st.markdown(
-            f'<p style="color:#c8bfa8;font-style:italic;font-size:0.95rem;">'
+            f'<p style="color:#f0ebe0;font-style:italic;font-size:0.95rem;">'
             f'„{vorschau_text}"</p>',
             unsafe_allow_html=True
         )
@@ -274,29 +283,29 @@ with tab1:
             # PCEP: String-Join — Liste zu kommasepariertem String
             signale_str = html.escape(", ".join(erkannte_signale))
             st.markdown(
-                f'<div style="background:#1a1200;border:1px solid #f59e0b;'
+                f'<div style="background:#1a1a1a;border:1px solid #c4a35a;'
                 f'border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;">'
-                f'<p style="color:#f59e0b;margin:0 0 0.3rem;font-size:0.72rem;'
+                f'<p style="color:#c4a35a;margin:0 0 0.3rem;font-size:0.72rem;'
                 f'text-transform:uppercase;letter-spacing:0.1em;">Das könnte klingen nach</p>'
-                f'<p style="color:#f5f0e8;font-size:1rem;margin:0;">{signale_str}</p>'
+                f'<p style="color:#f0ebe0;font-size:1rem;margin:0;">{signale_str}</p>'
                 f'</div>',
                 unsafe_allow_html=True
             )
 
         st.markdown(
-            f'<div style="background:#0e0c08;border-left:3px solid #f59e0b;'
+            f'<div style="background:#141414;border-left:3px solid #c4a35a;'
             f'padding:0.8rem 1rem;margin:0.5rem 0;">'
-            f'<p style="color:#c8bfa8;margin:0;">{spiegel}</p>'
+            f'<p style="color:#f0ebe0;margin:0;">{spiegel}</p>'
             f'</div>',
             unsafe_allow_html=True
         )
 
         st.markdown(
-            f'<div style="background:#140f00;border-left:3px solid #d97706;'
+            f'<div style="background:#141414;border-left:3px solid #d4b36a;'
             f'padding:0.8rem 1rem;margin:0.5rem 0;">'
-            f'<p style="color:#8a8070;margin:0 0 0.2rem;font-size:0.72rem;'
+            f'<p style="color:#888;margin:0 0 0.2rem;font-size:0.72rem;'
             f'text-transform:uppercase;letter-spacing:0.1em;">Eine Möglichkeit jetzt</p>'
-            f'<p style="color:#c8bfa8;margin:0;">{schritt}</p>'
+            f'<p style="color:#f0ebe0;margin:0;">{schritt}</p>'
             f'</div>',
             unsafe_allow_html=True
         )
@@ -327,7 +336,7 @@ with tab2:
     )
 
     st.markdown(
-        '<p style="color:#8a8070;font-size:0.75rem;text-transform:uppercase;'
+        '<p style="color:#888;font-size:0.75rem;text-transform:uppercase;'
         'letter-spacing:0.08em;margin-top:0.5rem;">Kategorien (Mehrfachauswahl möglich)</p>',
         unsafe_allow_html=True
     )
@@ -342,9 +351,9 @@ with tab2:
     # PCEP: any() + Membership-Test (in) — prüft ob mindestens eine Muster-Kategorie gewählt
     if any(k in daten.MUSTER_KATEGORIEN for k in kategorien):
         st.markdown(
-            '<div style="background:#1a1200;border:1px solid #f59e0b;border-radius:6px;'
+            '<div style="background:#1a1a1a;border:1px solid #c4a35a;border-radius:6px;'
             'padding:0.6rem 1rem;margin:0.5rem 0;">'
-            '<p style="color:#f59e0b;margin:0;font-size:0.85rem;">⚡ Hauptmuster-Moment erkannt.</p>'
+            '<p style="color:#c4a35a;margin:0;font-size:0.85rem;">⚡ Hauptmuster-Moment erkannt.</p>'
             '</div>',
             unsafe_allow_html=True
         )
@@ -375,9 +384,9 @@ with tab2:
     if st.session_state.rueckblick_letztes_ergebnis:
         erfolg = st.session_state.rueckblick_letztes_ergebnis
         st.markdown(
-            f'<div style="background:#1a1200;border:1px solid #f59e0b;'
+            f'<div style="background:#1a1a1a;border:1px solid #c4a35a;'
             f'border-radius:10px;padding:1rem 1.4rem;margin-top:1rem;">'
-            f'<p style="color:#f59e0b;font-size:1.05rem;margin:0;">'
+            f'<p style="color:#c4a35a;font-size:1.05rem;margin:0;">'
             f'{erfolg["emoji"]} {erfolg["nachricht"]}</p>'
             f'</div>',
             unsafe_allow_html=True
@@ -404,12 +413,12 @@ with tab3:
         st.markdown(kachel("⚡ Hauptmuster erkannt", hm_gesamt), unsafe_allow_html=True)
     with col2:
         # Fix 3: "Streak" → "Tage mit Kontakt" — kein Habit-Tracker-Vibe
-        st.markdown(kachel("🕯️ Tage mit Kontakt", f"{streak} Tage", rahmen="#261f0e", hintergrund="#13110b"), unsafe_allow_html=True)
+        st.markdown(kachel("🕯️ Tage mit Kontakt", f"{streak} Tage", rahmen="#2a2a2a", hintergrund="#141414"), unsafe_allow_html=True)
     with col3:
-        st.markdown(kachel("📖 Gesamt-Einträge", len(alle_eintraege), rahmen="#261f0e", hintergrund="#13110b"), unsafe_allow_html=True)
+        st.markdown(kachel("📖 Gesamt-Einträge", len(alle_eintraege), rahmen="#2a2a2a", hintergrund="#141414"), unsafe_allow_html=True)
     with col4:
         # Fix 3: "Akut-Momente" → "Präsenz-Momente" — weniger Alarm-Charakter
-        st.markdown(kachel("👁️ Präsenz-Momente", akut_gesamt, rahmen="#261f0e", hintergrund="#13110b"), unsafe_allow_html=True)
+        st.markdown(kachel("👁️ Präsenz-Momente", akut_gesamt, rahmen="#2a2a2a", hintergrund="#141414"), unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -427,52 +436,13 @@ with tab3:
             st.markdown(kachel("⚡ Hauptmuster erkannt", len(muster_woche)), unsafe_allow_html=True)
         with wk2:
             st.markdown(kachel("🌱 Neues Verhalten gewählt", len(neues_verhalten),
-                               farbe="#f59e0b", rahmen="#f59e0b", hintergrund="#1a1200"), unsafe_allow_html=True)
+                               farbe="#c4a35a", rahmen="#c4a35a", hintergrund="#1a1a1a"), unsafe_allow_html=True)
         with wk3:
             st.markdown(kachel("👁️ Präsenz-Momente", len(akut_woche)), unsafe_allow_html=True)
 
         st.markdown("")
 
-    # ── Daten-Export + Import ─────────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("#### Daten sichern")
-
-    col_dl, col_ul = st.columns(2)
-
-    with col_dl:
-        if alle_eintraege:
-            # PCEP: json.dumps() — Liste → String für Download
-            json_string = json.dumps(alle_eintraege, ensure_ascii=False, indent=2)
-            st.download_button(
-                label="⬇️ Einträge herunterladen",
-                data=json_string,
-                file_name=f"erfolgstagebuch_{heute_str.replace('.', '-')}.json",
-                mime="application/json"
-            )
-
-    with col_ul:
-        upload = st.file_uploader(
-            "⬆️ Einträge importieren (.json)",
-            type=["json"],
-            label_visibility="collapsed"
-        )
-        if upload is not None:
-            # Fix 4: Bestätigung bevor bestehende Daten überschrieben werden
-            bestaetigt = st.checkbox(
-                "Ich weiß, dass bestehende Einträge dabei ersetzt werden.",
-                key="import_confirm"
-            )
-            if bestaetigt:
-                try:
-                    importierte = json.load(upload)
-                    if isinstance(importierte, list):
-                        daten._schreibe_eintraege(importierte)
-                        st.success(f"{len(importierte)} Einträge importiert.")
-                        st.rerun()
-                    else:
-                        st.error("Ungültiges Format — erwartet eine JSON-Liste.")
-                except json.JSONDecodeError:
-                    st.error("Datei konnte nicht gelesen werden.")
+    pass  # Tab 3 zeigt nur Metriken und Wochenübersicht
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -487,7 +457,7 @@ with tab4:
 
     if not alle_eintraege:
         st.markdown(
-            '<p style="color:#4a4030;">Noch keine Einträge. Starte mit deinem ersten Moment.</p>',
+            '<p style="color:#444;">Noch keine Einträge. Starte mit deinem ersten Moment.</p>',
             unsafe_allow_html=True
         )
     else:
@@ -552,7 +522,7 @@ with tab4:
                     with spalte_meta:
                         for kat in e.get("kategorien", []):
                             ist_gold = kat in daten.MUSTER_KATEGORIEN
-                            farbe = "#f59e0b" if ist_gold else "#8a8070"
+                            farbe = "#c4a35a" if ist_gold else "#888"
                             st.markdown(
                                 f'<span style="color:{farbe};font-size:0.78rem;">{kat}</span><br>',
                                 unsafe_allow_html=True
@@ -561,7 +531,7 @@ with tab4:
                         if intensitaet > 0:
                             punkte = "●" * intensitaet + "○" * (5 - intensitaet)
                             st.markdown(
-                                f'<span style="color:#f59e0b;font-size:0.9rem;">{punkte}</span>',
+                                f'<span style="color:#c4a35a;font-size:0.9rem;">{punkte}</span>',
                                 unsafe_allow_html=True
                             )
 
